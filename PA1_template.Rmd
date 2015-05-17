@@ -106,7 +106,7 @@ We make at this moment an histogram of the total number of steps taken per day, 
 ggplot(number_steps_day, aes(x = steps)) + 
        geom_histogram(fill = "blue", binwidth = 1100) + 
         labs(title="Histogram: Steps taken per day", 
-             x = "Number of Steps per Day", y = "Number of times in a day(Count)") + theme_bw() 
+             x = "Number of steps/day", y = "Number of times in a day(Count)") + theme_bw() 
 ```
 
 
@@ -142,3 +142,116 @@ First, we calculate the 5-minute interval with the containing the maximum number
 max_interval <- steps_per_interval[which.max(steps_per_interval$steps),]
 paste("The interval ",as.character(max_interval[,"interval"]),"th has maximum ",as.character(max_interval[,"steps"])," steps.")
 ```
+
+Imputing missing values
+=======================
+
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+* Calculte and report the total nuber of misssing values:
+```{r}
+na_values <- sum(is.na(data_activity$steps))
+paste("There are a total of ",as.character(na_values)," NA's values")
+```
+
+* Devise a strategy for filling in all of the missing values in the dataset.
+
+To fill missing values, we choose a strategy very simple. It consists in replace the missing values with the mean value at the same interval across days.
+
+First, we create a function fill_na_values(data, pervalue) which the data arguement is the activity data frame and pervalue argument is the steps_per_interval data frame:
+
+```{r}
+fill_na_values <- function(data_activity, pervalue) {
+        na_index <- which(is.na(data_activity$steps))
+        na_replace <- unlist(lapply(na_index, FUN=function(idx){
+                interval = data_activity[idx,]$interval
+                pervalue[pervalue$interval == interval,]$steps
+        }))
+        fill_navalues <- data_activity$steps
+        fill_navalues[na_index] <- na_replace
+        fill_navalues
+}
+
+data_activity_fill <- data.frame(  
+        steps = fill_na_values(data_activity, steps_per_interval),  
+        date = data_activity$date,  
+        interval = data_activity$interval)
+```
+
+* Create a new dataset that is equal to the original dataset but with the missing data filled in.
+We must check that there are the same number of observations and there are not missing values for steps column.
+
+```{r}
+str(data_activity_fill)
+
+sum(is.na(data_activity_fill$steps))
+```
+
+* Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+We make at this moment another histogram of the total number of steps taken per day, plotted with appropriate bin interval.
+
+```{r}
+fill_number_steps_day <- aggregate(steps ~ date, data_activity_fill, sum)
+colnames(fill_number_steps_day) <- c("date","steps")
+
+##plotting histogram
+ggplot(fill_number_steps_day, aes(x = steps)) + 
+       geom_histogram(fill = "blue", binwidth = 1100) + 
+        labs(title="Histogram: Steps taken per day", 
+             x = "Number of steps/day", y = "Number of times in a day(Count)") + theme_bw() 
+```
+
+```{r}
+steps_mean_fill   <- mean(fill_number_steps_day$steps, na.rm=TRUE)
+steps_median_fill <- median(fill_number_steps_day$steps, na.rm=TRUE)
+paste("The fill mean total number of steps taken per day is:",steps_mean_fill)
+paste("And the fill median total number of steps taken per day is:",steps_median_fill)
+```
+
+We can see that the values after filling the data mean and median are equal and differs with the estimates at the first part.
+
+
+Are there differences in activity patterns between weekdays and weekends?
+=========================================================================
+
+For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+We use the last table with filled-in missing values.
+
+* Create a new factor variable in the dataset with two levels: *weekday* and *weekend* indicating if a given date is a weekday or weekend day.
+
+```{r}
+weekdays_steps <- function(data) {
+    weekdays_steps <- aggregate(data$steps, by=list(interval = data$interval), FUN=mean, na.rm=TRUE)
+    # convert to integers for plotting
+    weekdays_steps$interval <- as.integer(levels(weekdays_steps$interval)[weekdays_steps$interval])
+    colnames(weekdays_steps) <- c("interval", "steps")
+    weekdays_steps
+}
+
+data_by_weekdays <- function(data) {
+    data$weekday <- as.factor(weekdays(data$date)) # weekdays
+    weekend_data <- subset(data, weekday %in% c("saturday","sunday"))
+    weekday_data <- subset(data, !weekday %in% c("saturday","sunday"))
+
+
+    weekend_steps <- weekdays_steps(weekend_data)
+    weekday_steps <- weekdays_steps(weekday_data)
+
+    weekend_steps$dayofweek <- rep("weekend", nrow(weekend_steps))
+    weekday_steps$dayofweek <- rep("weekday", nrow(weekday_steps))
+
+    data_by_weekdays <- rbind(weekend_steps, weekday_steps)
+    data_by_weekdays$dayofweek <- as.factor(data_by_weekdays$dayofweek)
+    data_by_weekdays
+}
+
+data_weekdays <- data_by_weekdays(data_activity_fill)
+```
+
+Sorry!!! It does'nt work
+
+* Make a panel plot containing a time series plot (i.e. type = l) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+
