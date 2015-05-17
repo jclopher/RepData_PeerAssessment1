@@ -183,18 +183,15 @@ ggplot(steps_per_interval, aes(x=interval, y=steps)) +
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
 
 
-2. We need to answer: Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+1. We need to answer: Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 First, we calculate the 5-minute interval with the containing the maximum number of steps: 
 
 ```r
-max_interval <- steps_per_interval[which.max(  
-        steps_per_interval$steps),]
-
-paste("The "," has maximum max_interval ",max_interval,"steps.")
+max_interval <- steps_per_interval[which.max(steps_per_interval$steps),]
+paste("The interval ",as.character(max_interval[,"interval"]),"th has maximum ",as.character(max_interval[,"steps"])," steps.")
 ```
 
 ```
-## [1] "The   has maximum max_interval  835 steps."             
-## [2] "The   has maximum max_interval  206.169811320755 steps."
+## [1] "The interval  835 th has maximum  206.169811320755  steps."
 ```

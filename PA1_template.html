@@ -333,14 +333,11 @@ colnames(steps_per_interval) &lt;- c(&quot;interval&quot;, &quot;steps&quot;)
 
 <p>First, we calculate the 5-minute interval with the containing the maximum number of steps: </p>
 
-<pre><code class="r">max_interval &lt;- steps_per_interval[which.max(  
-        steps_per_interval$steps),]
-
-paste(&quot;The &quot;,&quot; has maximum max_interval &quot;,max_interval,&quot;steps.&quot;)
+<pre><code class="r">max_interval &lt;- steps_per_interval[which.max(steps_per_interval$steps),]
+paste(&quot;The interval &quot;,as.character(max_interval[,&quot;interval&quot;]),&quot;th has maximum &quot;,as.character(max_interval[,&quot;steps&quot;]),&quot; steps.&quot;)
 </code></pre>
 
-<pre><code>## [1] &quot;The   has maximum max_interval  835 steps.&quot;             
-## [2] &quot;The   has maximum max_interval  206.169811320755 steps.&quot;
+<pre><code>## [1] &quot;The interval  835 th has maximum  206.169811320755  steps.&quot;
 </code></pre>
 
 </body>
